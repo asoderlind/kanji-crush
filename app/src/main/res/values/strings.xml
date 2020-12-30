@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Kanji Crush</string>
+    <string name="lower_button_text">Advance level</string>
 </resources>

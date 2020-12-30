@@ -10,8 +10,7 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/text"
-        android:text="Level 1/5"
+        android:id="@+id/levelText"
         android:textColor="@color/black"
         android:textSize="25dp"
         android:layout_width="wrap_content"
@@ -25,6 +24,17 @@
         android:stretchMode="columnWidth"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/text"
+        android:layout_below="@+id/levelText"
+        android:layout_above="@+id/btnSubmit"
+        />
+
+    <Button
+        android:id="@+id/btnSubmit"
+        android:textColor="@color/black"
+        android:layout_alignParentBottom="true"
+        android:layout_height="40dp"
+        android:layout_width="fill_parent"
+        app:backgroundTint="@null"
+        android:background="@drawable/button_selector"
         />
 </RelativeLayout>

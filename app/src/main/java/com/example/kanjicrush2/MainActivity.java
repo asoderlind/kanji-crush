@@ -6,10 +6,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.GridView;
-import android.widget.Toast;
-import android.widget.ToggleButton;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -21,8 +19,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     // Declare object for the gridView
-    private static GridView mGridView;
-    private static com.example.kanjicrush2.CSVFile mCSVFile;
+    private GridView mGridView;
     public static final String msg = "Android : ";
 
     // Game-specific variables
@@ -34,15 +31,26 @@ public class MainActivity extends AppCompatActivity {
     // non-constant variables
     private static int mColumnWidth, mColumnHeight;
     private static int mLevel = 0;
-    private static int mNumWords = 4 + mLevel*2;
+    private static int mNumWords = 4;
 
     // Declaration the local lists
     private static String[] mJukuList;
     private static String[] mKanjiList;
     private static int[] mButtonStateList;
 
-    /** Checks for completed lines and changes status */
-    private void check_for_completed_line(){
+    private void advanceLevel(){
+        Log.d(msg, "The board is complete, next level can be loaded");
+        mLevel++;
+        mNumWords = 4 + mLevel*2;
+        setRowsAndColumns();
+        initLists();
+        initView();
+        initText();
+        setDimensions();
+    }
+
+    /** Checks for completed lines and updates status */
+    private void checkForCompletedLine(){
         Log.d(msg,"Checking possible candidates:");
         for (int i = 0; i < mKanjiList.length/3; i++){
             String candidate;
@@ -54,21 +62,30 @@ public class MainActivity extends AppCompatActivity {
                 candidate = mKanjiList[i] + mKanjiList[i+COLUMNS] + mKanjiList[i+2*COLUMNS];
             }
             Log.d(msg,candidate);
-            for(int j = 0; j < mJukuList.length; j++){
-                if(candidate.equals(mJukuList[j])){
-                    if (i >= COLUMNS){
-                        mButtonStateList[i+(2*COLUMNS)] = 2;
-                        mButtonStateList[i+(3*COLUMNS)] = 2;
-                        mButtonStateList[i+(4*COLUMNS)] = 2;
+            for (String juku : mJukuList) {
+                if (candidate.equals(juku)) {
+                    if (i >= COLUMNS) {
+                        mButtonStateList[i + (2 * COLUMNS)] = 2;
+                        mButtonStateList[i + (3 * COLUMNS)] = 2;
+                        mButtonStateList[i + (4 * COLUMNS)] = 2;
                     } else {
                         mButtonStateList[i] = 2;
-                        mButtonStateList[i+COLUMNS] = 2;
-                        mButtonStateList[i+2*COLUMNS] = 2;
+                        mButtonStateList[i + COLUMNS] = 2;
+                        mButtonStateList[i + 2 * COLUMNS] = 2;
                     }
-
                 }
             }
         }
+    }
+
+    /** Checks if the board is complete or not */
+    private boolean boardIsComplete(){
+        Log.d(msg,"boardIsComplete() called");
+        int numCompleted = 0;
+        for (int i = 0; i < DIMENSIONS; i++) {
+            if (mButtonStateList[i] == 2) numCompleted++;
+        }
+        return numCompleted == DIMENSIONS;
     }
 
     /** Makes an ArrayList of button-objects from context and sends to our Adapter */
@@ -97,19 +114,17 @@ public class MainActivity extends AppCompatActivity {
             // set default bg
             button.setBackgroundResource(R.drawable.chip);
 
-            // TODO: make the listener a separate class
+            /* TODO: make the listener a separate class */
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d(msg, "Click registered @ num " + String.valueOf(j));
-
+                    Log.d(msg, "Click registered @ num " + j);
                     // Toggle the state between selected (1) and deselected (0)
                     if (mButtonStateList[j] == 0) {
                         mButtonStateList[j] = 1;
                     } else {
                         mButtonStateList[j] = 0;
                     }
-
                     // Refresh buttons
                     updateButtons();
                 }
@@ -122,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
     /** Returns the list of the juku */
     private String[] getJukuList(int numWords) {
         InputStream inputStream = getResources().openRawResource(R.raw.jukugo);
-        mCSVFile = new com.example.kanjicrush2.CSVFile(inputStream);
+        CSVFile mCSVFile = new CSVFile(inputStream);
 
         // Get the list of words as string array
         List myList = mCSVFile.read();
@@ -133,12 +148,12 @@ public class MainActivity extends AppCompatActivity {
         Random random = new Random();
         for (int i=0; i < numWords; i++) {
             mRandomList[i] = myStringList[random.nextInt(myStringList.length)];
-            // TODO: check for duplicates in mRandomList when adding next random word
+            /* TODO: check for duplicates in mRandomList when adding next random word */
         }
         return mRandomList;
     }
 
-    // TODO: make getKanjiList more elegant
+    /* TODO: make getKanjiList more elegant */
     /** Breaks up the 3-char words into a list of single-char strings */
     private String[] getKanjiList(String[] jukuList) {
         mKanjiList = new String[jukuList.length*3];
@@ -162,16 +177,30 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
-    /** Assign the kanjiList and chipList*/
+    private void initDebugButton() {
+        Button debugButton;
+        debugButton = findViewById(R.id.btnSubmit);
+        debugButton.setText(R.string.lower_button_text);
+        debugButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                Log.d(msg, "debug button pressed");
+                advanceLevel();
+            }
+        });
+    }
+
+    /** Create and assign the lists*/
     private void initLists() {
+        Log.d(msg, "initLists() called");
         mJukuList = getJukuList(mNumWords);
         for( int i=0; i < mJukuList.length; i++){
-            Log.d(msg, "Juku " + String.valueOf(i) + " is: " + mJukuList[i]);
+            Log.d(msg, "Juku " + i + " is: " + mJukuList[i]);
         }
 
         mKanjiList = getKanjiList(mJukuList);
         for( int i=0; i < mKanjiList.length; i++){
-            Log.d(msg, "Kanji " + String.valueOf(i) + " is: " + mKanjiList[i]);
+            Log.d(msg, "Kanji " + i + " is: " + mKanjiList[i]);
         }
 
         // Set all states to zero at the start
@@ -183,27 +212,34 @@ public class MainActivity extends AppCompatActivity {
         scramble_kanjiList();
     }
 
+    private void initText() {
+        // Load and use views afterwards
+        TextView tv1 = findViewById(R.id.levelText);
+        String levelAnnotation = "Level: " + (mLevel + 1) + "/5";
+        tv1.setText(levelAnnotation);
+    }
+
     /** Assign the main GridView */
     private void initView() {
-        // Init view
-        //TODO: Cast as our custom gridview
-        mGridView = (GridView) findViewById(R.id.gridView);
+        Log.d(msg, "initView() called");
+
+        mGridView = findViewById(R.id.gridView);
         mGridView.setNumColumns(COLUMNS);
     }
 
     /** Called when the activity is first created. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(msg, "The onCreate() event");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Log.d(msg, "The onCreate() event");
 
         setRowsAndColumns();
         initLists();
         initView();
+        initText();
+        initDebugButton();
         setDimensions(); // set COLUMNS, ROWS, DIMENSIONS, mColumnWidth and mColumnHeight
-
     }
 
     /** Called just before the activity is destroyed. */
@@ -212,7 +248,6 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d(msg, "The onDestroy() event");
     }
-
 
     /** Called when another activity is taking focus. */
     @Override
@@ -252,6 +287,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** Gives the dimensions we need for the buttons */
     private void setDimensions() {
+        Log.d(msg, "setDimensions() called");
         ViewTreeObserver vto = mGridView.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
@@ -266,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
 
                 mColumnWidth = displayWidth / COLUMNS;
                 mColumnHeight = requiredHeight / (ROWS + 1); // +1 for a bit of extra space
-                Log.d(msg, "Column dimensions: " + String.valueOf(mColumnWidth) + "x" + String.valueOf(mColumnHeight));
+                Log.d(msg, "Column dimensions: " + (mColumnWidth) + "x" + (mColumnHeight));
 
                 display(getApplicationContext());
             }
@@ -274,12 +310,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setRowsAndColumns() {
+        Log.d(msg, "setRowsAndColumns() called");
         ROWS = mLevelDimensions[mLevel][0];
         COLUMNS = mLevelDimensions[mLevel][1];
         DIMENSIONS = ROWS*COLUMNS;
     }
 
-    private void swap_chips(){
+    private void swapChips(){
         Log.d(msg, "Swapping chips");
         //Find first
         for(int i = 0; i < mButtonStateList.length; i++){
@@ -298,10 +335,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean two_chips_selected(int[] statusList){
+    private boolean twoChipsSelected(int[] statusList){
         int count = 0;
-        for(int i = 0; i < statusList.length; i++){
-            if (statusList[i] == 1){
+        for (int status : statusList) {
+            if (status == 1) {
                 count++;
                 if (count > 1) return true;
             }
@@ -315,28 +352,32 @@ public class MainActivity extends AppCompatActivity {
         Log.d(msg, "updateButtons() called");
 
         // Check for swap and completed line conditions
-        if(two_chips_selected(mButtonStateList)) {
-            swap_chips();
-            check_for_completed_line();
+        if(twoChipsSelected(mButtonStateList)) {
+            swapChips();
+            checkForCompletedLine();
         }
 
-        // Check state and update background resource
-        for (int i = 0; i < DIMENSIONS; i++){
-            Button uButton = (Button) findViewById(i); //local var for updating
-            if(mButtonStateList[i] == 0) {
-                uButton.setBackgroundResource(R.drawable.chip);
-            }
-            else if (mButtonStateList[i] == 1) {
-                uButton.setBackgroundResource(R.drawable.chip_green);
-            }
-            else if (mButtonStateList[i] == 2) {
-                uButton.setBackgroundResource(R.drawable.chip_cross);
-                uButton.setEnabled(false);
-            }
+        if (boardIsComplete()){
+            advanceLevel();
+        } else {
+            Log.d(msg, "Updating button states and bg");
+            for (int i = 0; i < DIMENSIONS; i++){
+                Button uButton = findViewById(i); //local var for updating
+                if(mButtonStateList[i] == 0) {
+                    uButton.setBackgroundResource(R.drawable.chip);
+                }
+                else if (mButtonStateList[i] == 1) {
+                    uButton.setBackgroundResource(R.drawable.chip_green);
+                }
+                else if (mButtonStateList[i] == 2) {
+                    uButton.setBackgroundResource(R.drawable.chip_cross);
+                    uButton.setEnabled(false);
+                }
 
-            // Set text
-            String button_text = mKanjiList[i];
-            uButton.setText(button_text);
+                // Set text
+                String button_text = mKanjiList[i];
+                uButton.setText(button_text);
+            }
         }
     }
 }
