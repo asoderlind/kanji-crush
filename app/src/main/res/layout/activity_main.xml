@@ -26,18 +26,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/text"
-        android:layout_above="@+id/btnSubmit"
         />
-
-    <Button
-        android:id="@+id/btnSubmit"
-        android:text="Debug"
-        android:textColor="@color/black"
-        android:layout_alignParentBottom="true"
-        android:layout_height="wrap_content"
-        android:layout_width="fill_parent"
-        app:backgroundTint="@null"
-        android:background="@drawable/button_selector"
-        />
-
 </RelativeLayout>
