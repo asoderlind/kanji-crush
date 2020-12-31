@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.GridLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.ToggleButton;
@@ -45,7 +46,16 @@ public class CustomAdapter extends BaseAdapter {
 
         if(convertView==null){
             button = mButtons.get(position);
-            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(mColumnWidth, mColumnHeight);
+            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+            params.width = mColumnWidth;
+
+            if (mColumnHeight > mColumnWidth){
+                params.height = mColumnWidth;
+            } else {
+                params.height = mColumnHeight;
+            }
+
+            button.setLayoutParams(params);
             button.setLayoutParams(params);
         }else{
             button = (Button)convertView;

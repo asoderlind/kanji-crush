@@ -6,8 +6,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:layout_gravity="center_horizontal"
-    tools:context=".MainActivity">
+    android:gravity="center"
+    tools:context=".MainActivity"
+    android:background="@color/grey_darkest">
 
     <TextView
         android:id="@+id/levelText"
@@ -21,22 +22,20 @@
     <GridView
         android:id="@+id/gridView"
         android:scrollbars="none"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginVertical="80dp"
-        android:verticalSpacing="0dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="80dp"
         android:layout_below="@+id/levelText"
         android:layout_above="@+id/btnSubmit"
+        android:background="@color/grey_darkest"
         />
 
     <Button
         android:id="@+id/btnSubmit"
-        android:textColor="@color/black"
+        android:textColor="@color/white"
         android:layout_alignParentBottom="true"
         android:layout_height="40dp"
         android:layout_width="fill_parent"
-        app:backgroundTint="@null"
-        android:background="@drawable/button_selector"
         />
 </RelativeLayout>

@@ -1,6 +1,7 @@
 package com.example.kanjicrush2;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
+import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.TextView;
 
@@ -42,7 +44,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void advanceLevel(){
         Log.d(msg, "The board is complete, next level can be loaded");
-        mLevel++;
+        if (mLevel < 4){
+            mLevel++;
+        } else {
+            // reset if limit reached
+            mLevel = 0;
+        }
         mNumWords = 4 + mLevel*2;
         setRowsAndColumns();
         initLists();
@@ -53,17 +60,17 @@ public class MainActivity extends AppCompatActivity {
 
     /** Checks for completed lines and updates status */
     private void checkForCompletedLine(){
-        Log.d(msg,"Checking possible candidates:");
+        Log.d(msg,"checkForCompletedLine() called:");
         for (int i = 0; i < mKanjiList.length/3; i++){
             String candidate;
             if (i >= COLUMNS){
-                Log.d(msg,"Second row");
+                //Log.d(msg,"Second row");
                 candidate = mKanjiList[i+(2*COLUMNS)] + mKanjiList[i+(3*COLUMNS)] + mKanjiList[i+(4*COLUMNS)];
             } else {
-                Log.d(msg,"First row");
+                //Log.d(msg,"First row");
                 candidate = mKanjiList[i] + mKanjiList[i+COLUMNS] + mKanjiList[i+2*COLUMNS];
             }
-            Log.d(msg,candidate);
+            //Log.d(msg,candidate);
             for (String juku : mJukuList) {
                 if (candidate.equals(juku)) {
                     if (i >= COLUMNS) {
@@ -76,26 +83,46 @@ public class MainActivity extends AppCompatActivity {
                         mButtonStateList[i + 2 * COLUMNS] = 2;
                     }
                     // One more line is completed
+                    updateButtonBackgrounds();
+                    checkForCompletedBoard();
                 }
             }
         }
     }
 
-    /** Checks if the board is complete or not */
-    private boolean boardIsComplete(){
-        Log.d(msg,"boardIsComplete() called");
+    /** Checks for completed board */
+    private void checkForCompletedBoard() {
+        Log.d(msg,"checkForCompletedBoard() called");
         int numCompleted = 0;
         for (int i = 0; i < DIMENSIONS; i++) {
             if (mButtonStateList[i] == 2) numCompleted++;
         }
-        return numCompleted == DIMENSIONS;
+        if (numCompleted == DIMENSIONS){
+            // The board is complete
+            advanceLevel();
+        }
+    }
+
+    /** Checks for 2 selected chips */
+    private void checkForSelectedChips() {
+        Log.d(msg, "checkForSelectedChips() called");
+        int count = 0;
+        for (int state : mButtonStateList) {
+            if (state == 1) {
+                count++;
+                if (count > 1) {
+                    swapChips();
+                }
+            }
+        }
+        updateButtonBackgrounds();
     }
 
     /** Makes an ArrayList of button-objects from context and sends to our Adapter */
     private void display(Context context) {
         Log.d(msg,"display() called");
         // This sends the view to the adapter which actually puts it on the screen
-        mGridView.setAdapter(new com.example.kanjicrush2.CustomAdapter(getButtons(context), mColumnWidth, mColumnHeight));
+        mGridView.setAdapter(new CustomAdapter(getButtons(context), mColumnWidth, mColumnHeight));
     }
 
     /** Initialize the buttons and put them in a list, which is returned */
@@ -103,31 +130,41 @@ public class MainActivity extends AppCompatActivity {
         Log.d(msg,"getButtons() called");
         ArrayList<Button> buttons = new ArrayList<>();
         for (int i = 0; i < DIMENSIONS; i++) {
-            final Button button;
-            button = new Button(context);
+            if (ROWS/3 > 1) {
+                // Add extra row of empty invisible buttons
+                if (i == DIMENSIONS/2){
+                    Log.d(msg,"i = " + i);
+                    Log.d(msg,"we are in the beginning of the middle row");
+                    Button button= new Button(context);
+                    button.setVisibility(Button.INVISIBLE);
+                    button.setEnabled(false);
+                    for(int j=0; j < COLUMNS; j++){
+                        Log.d(msg,"Adding button + " + j);
+                        buttons.add(button);
+                    }
+                }
+            }
+            final Button button= new Button(context);
             button.setId(i);
 
             // Set default text
             String button_text = mKanjiList[button.getId()];
             button.setText(button_text);
+            button.setTextColor(Color.parseColor("#FFFFFFFF"));
             button.setTextSize(35);
 
-            // set default bg and size
-            button.setBackgroundResource(R.drawable.chip);
+            // set selector
+            button.setBackgroundResource(R.drawable.button_selector_default);
 
             /* TODO: make the listener a separate class */
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d(msg, "Click registered @ num " + button.getId());
-                    // Toggle the state between selected (1) and deselected (0)
-                    if (mButtonStateList[button.getId()] == 0) {
-                        mButtonStateList[button.getId()] = 1;
-                    } else {
-                        mButtonStateList[button.getId()] = 0;
-                    }
-                    // Refresh buttons
-                    updateButtons();
+                    Log.d(msg, "onClick() called @ id " + button.getId());
+                    if (mButtonStateList[button.getId()] == 0) mButtonStateList[button.getId()] = 1;
+                    else mButtonStateList[button.getId()] = 0;
+                    //logStateList();
+                    checkForSelectedChips();
                 }
             });
             buttons.add(button);
@@ -207,13 +244,14 @@ public class MainActivity extends AppCompatActivity {
         for( int i=0; i < DIMENSIONS; i++) {
             mButtonStateList[i] = 0;
         }
-        scramble_kanjiList();
+        scrambleKanjiList();
     }
 
     /** Add text to the textView at the top */
     private void initText() {
         TextView levelTextView = findViewById(R.id.levelText);
         String levelAnnotation = "Level: " + (mLevel + 1) + "/5";
+        levelTextView.setTextColor(Color.parseColor("#FFFFFFFF"));
         levelTextView.setText(levelAnnotation);
     }
 
@@ -222,6 +260,15 @@ public class MainActivity extends AppCompatActivity {
         Log.d(msg, "initView() called");
         mGridView = findViewById(R.id.gridView);
         mGridView.setNumColumns(COLUMNS);
+    }
+
+    // Debugging the state list
+    private void logStateList() {
+        StringBuilder stateStr = new StringBuilder();
+        for(int s : mButtonStateList){
+            stateStr.append(s);
+        }
+        Log.d(msg, stateStr.toString());
     }
 
     /** Called when the activity is first created. */
@@ -239,37 +286,8 @@ public class MainActivity extends AppCompatActivity {
         setDimensions(); // set COLUMNS, ROWS, DIMENSIONS, mColumnWidth and mColumnHeight
     }
 
-    /** Called just before the activity is destroyed. */
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(msg, "The onDestroy() event");
-    }
-
-    /** Called when another activity is taking focus. */
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(msg, "The onPause() event");
-    }
-
-    /** Called when the activity has become visible. */
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(msg, "The onResume() event");
-    }
-
-
-    /** Called when the activity is no longer visible. */
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(msg, "The onStop() event");
-    }
-
     /** Scramble the list */
-    private void scramble_kanjiList() {
+    private void scrambleKanjiList() {
         int index;
         String temp;
         Random random = new Random();
@@ -291,16 +309,21 @@ public class MainActivity extends AppCompatActivity {
             public void onGlobalLayout() {
                 Log.d(msg, "onGlobalLayout called");
                 mGridView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                int displayWidth = mGridView.getMeasuredWidth() - 140;
+                int displayWidth = mGridView.getMeasuredWidth() - 100; // -140 to account for style margins
                 int displayHeight = mGridView.getMeasuredHeight();
 
                 int statusbarHeight = getStatusBarHeight(getApplicationContext());
                 int requiredHeight = displayHeight - statusbarHeight;
 
                 mColumnWidth = displayWidth / COLUMNS;
-                mColumnHeight = requiredHeight / ROWS; // +1 for a bit of extra space
-                Log.d(msg, "Column dimensions: " + (mColumnWidth) + "x" + (mColumnHeight));
 
+                if (ROWS/3 > 1) {
+                    mColumnHeight = requiredHeight / (ROWS + 1); // +1 for a bit of extra space
+                } else {
+                    mColumnHeight = requiredHeight / ROWS; // +1 for a bit of extra space
+                }
+
+                Log.d(msg, "Column dimensions: " + (mColumnWidth) + "x" + (mColumnHeight));
                 display(getApplicationContext());
             }
         });
@@ -314,7 +337,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void swapChips(){
-        Log.d(msg, "Swapping chips");
+        Log.d(msg, "swapChips() called");
         //Find first
         for(int i = 0; i < mButtonStateList.length; i++){
             if(mButtonStateList[i] == 1){
@@ -324,16 +347,16 @@ public class MainActivity extends AppCompatActivity {
                     if(mButtonStateList[j] == 1){
                         mButtonStateList[i] = 0;
                         mButtonStateList[j] = 0;
+
                         mKanjiList[i] = mKanjiList[j];
                         mKanjiList[j] = tmp_str;
 
                         int k = i; // Final integer variable for first kanji
                         int l = j; //Final integer variable for second kanji
 
-                        Log.d(msg, "mKanjiList[i]:" + mKanjiList[i]);
-                        Log.d(msg, "KanjiList[j]:" + mKanjiList[j]);
+                        Log.d(msg, "Starting animation");
 
-                        // Animation
+                        // Animation step
                         Button button1 = (Button)findViewById(i);
                         Button button2 = (Button)findViewById(j);
                         final Animation animation1 = new TranslateAnimation(0, (button2.getX() - button1.getX()), 0, (button2.getY() - button1.getY()));
@@ -351,6 +374,8 @@ public class MainActivity extends AppCompatActivity {
                                 // Set text
                                 button1.setText(mKanjiList[k]);
                                 button2.setText(mKanjiList[l]);
+                                checkForCompletedLine();
+
                                 // Cancel animation to avoid flicker
                                 animation1.cancel();
                                 animation2.cancel();
@@ -362,55 +387,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean twoChipsSelected(int[] statusList){
-        int count = 0;
-        for (int status : statusList) {
-            if (status == 1) {
-                count++;
-                if (count > 1) return true;
-            }
-        }
-        return false;
-    }
-
-    /** This function finds the buttons by their id and updates the style.
-     * Also checks for board conditions and updates accordingly. */
-    private void updateButtons(){
-        Log.d(msg, "updateButtons() called");
-        String stateStr = "";
-        for(int s : mButtonStateList){
-            stateStr += s;
-        }
-        Log.d(msg, stateStr);
-
-
-        // Check for swap and completed line conditions
-        if(twoChipsSelected(mButtonStateList)) {
-            swapChips();
-            checkForCompletedLine();
-        }
-
-        // Check board status
-        if (boardIsComplete()){
-            advanceLevel();
-        } else {
-            updateButtonStates();
-        }
-    }
-
-    private void updateButtonStates(){
-        Log.d(msg, "Updating button background and disables gray buttons");
+    private void updateButtonBackgrounds(){
+        Log.d(msg, "updateButtonBackgrounds() called");
         for (int i = 0; i < DIMENSIONS; i++){
             Button uButton = findViewById(i); //local var for updating
             //Log.d(msg, "Button with id: " + uButton.getId() + " has state: " + mButtonStateList[i]);
             if(mButtonStateList[i] == 0) {
-                uButton.setBackgroundResource(R.drawable.chip);
+                uButton.setBackgroundResource(R.drawable.button_selector_default);
             }
             else if (mButtonStateList[i] == 1) {
-                uButton.setBackgroundResource(R.drawable.chip_green);
+                uButton.setBackgroundResource(R.drawable.button_selector_selected);
             }
             else if (mButtonStateList[i] == 2) {
-                uButton.setBackgroundResource(R.drawable.chip_cross);
+                uButton.setBackgroundResource(R.drawable.button_selector_completed);
                 uButton.setEnabled(false);
             }
         }
