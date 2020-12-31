@@ -1,11 +1,15 @@
 package com.example.kanjicrush2;
 
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.ToggleButton;
+
+import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 
@@ -41,7 +45,8 @@ public class CustomAdapter extends BaseAdapter {
 
         if(convertView==null){
             button = mButtons.get(position);
-            button.setLayoutParams(new ListView.LayoutParams(mColumnWidth, mColumnHeight));
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(mColumnWidth, mColumnHeight);
+            button.setLayoutParams(params);
         }else{
             button = (Button)convertView;
         }

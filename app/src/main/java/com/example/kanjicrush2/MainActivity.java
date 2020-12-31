@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
@@ -73,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
                         mButtonStateList[i + COLUMNS] = 2;
                         mButtonStateList[i + 2 * COLUMNS] = 2;
                     }
+                    // One more line is completed
                 }
             }
         }
@@ -99,31 +102,29 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Button> getButtons(Context context) {
         Log.d(msg,"getButtons() called");
         ArrayList<Button> buttons = new ArrayList<>();
-        Button button;
         for (int i = 0; i < DIMENSIONS; i++) {
-            // Set id
-            int j = i;
+            final Button button;
             button = new Button(context);
-            button.setId(j);
+            button.setId(i);
 
             // Set default text
-            String button_text = mKanjiList[j];
+            String button_text = mKanjiList[button.getId()];
             button.setText(button_text);
-            button.setTextSize(40);
+            button.setTextSize(35);
 
-            // set default bg
+            // set default bg and size
             button.setBackgroundResource(R.drawable.chip);
 
             /* TODO: make the listener a separate class */
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d(msg, "Click registered @ num " + j);
+                    Log.d(msg, "Click registered @ num " + button.getId());
                     // Toggle the state between selected (1) and deselected (0)
-                    if (mButtonStateList[j] == 0) {
-                        mButtonStateList[j] = 1;
+                    if (mButtonStateList[button.getId()] == 0) {
+                        mButtonStateList[button.getId()] = 1;
                     } else {
-                        mButtonStateList[j] = 0;
+                        mButtonStateList[button.getId()] = 0;
                     }
                     // Refresh buttons
                     updateButtons();
@@ -197,32 +198,28 @@ public class MainActivity extends AppCompatActivity {
         for( int i=0; i < mJukuList.length; i++){
             Log.d(msg, "Juku " + i + " is: " + mJukuList[i]);
         }
-
         mKanjiList = getKanjiList(mJukuList);
         for( int i=0; i < mKanjiList.length; i++){
             Log.d(msg, "Kanji " + i + " is: " + mKanjiList[i]);
         }
-
         // Set all states to zero at the start
         mButtonStateList = new int[DIMENSIONS];
         for( int i=0; i < DIMENSIONS; i++) {
             mButtonStateList[i] = 0;
         }
-
         scramble_kanjiList();
     }
 
+    /** Add text to the textView at the top */
     private void initText() {
-        // Load and use views afterwards
-        TextView tv1 = findViewById(R.id.levelText);
+        TextView levelTextView = findViewById(R.id.levelText);
         String levelAnnotation = "Level: " + (mLevel + 1) + "/5";
-        tv1.setText(levelAnnotation);
+        levelTextView.setText(levelAnnotation);
     }
 
     /** Assign the main GridView */
     private void initView() {
         Log.d(msg, "initView() called");
-
         mGridView = findViewById(R.id.gridView);
         mGridView.setNumColumns(COLUMNS);
     }
@@ -285,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** Gives the dimensions we need for the buttons */
+    /** Sets dimensions buttons and calls display()*/
     private void setDimensions() {
         Log.d(msg, "setDimensions() called");
         ViewTreeObserver vto = mGridView.getViewTreeObserver();
@@ -294,14 +291,14 @@ public class MainActivity extends AppCompatActivity {
             public void onGlobalLayout() {
                 Log.d(msg, "onGlobalLayout called");
                 mGridView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                int displayWidth = mGridView.getMeasuredWidth();
+                int displayWidth = mGridView.getMeasuredWidth() - 140;
                 int displayHeight = mGridView.getMeasuredHeight();
 
                 int statusbarHeight = getStatusBarHeight(getApplicationContext());
                 int requiredHeight = displayHeight - statusbarHeight;
 
                 mColumnWidth = displayWidth / COLUMNS;
-                mColumnHeight = requiredHeight / (ROWS + 1); // +1 for a bit of extra space
+                mColumnHeight = requiredHeight / ROWS; // +1 for a bit of extra space
                 Log.d(msg, "Column dimensions: " + (mColumnWidth) + "x" + (mColumnHeight));
 
                 display(getApplicationContext());
@@ -325,10 +322,40 @@ public class MainActivity extends AppCompatActivity {
                 // Find second
                 for(int j = i + 1; j < mButtonStateList.length; j++){
                     if(mButtonStateList[j] == 1){
-                        mKanjiList[i] = mKanjiList[j];
-                        mKanjiList[j] = tmp_str;
                         mButtonStateList[i] = 0;
                         mButtonStateList[j] = 0;
+                        mKanjiList[i] = mKanjiList[j];
+                        mKanjiList[j] = tmp_str;
+
+                        int k = i; // Final integer variable for first kanji
+                        int l = j; //Final integer variable for second kanji
+
+                        Log.d(msg, "mKanjiList[i]:" + mKanjiList[i]);
+                        Log.d(msg, "KanjiList[j]:" + mKanjiList[j]);
+
+                        // Animation
+                        Button button1 = (Button)findViewById(i);
+                        Button button2 = (Button)findViewById(j);
+                        final Animation animation1 = new TranslateAnimation(0, (button2.getX() - button1.getX()), 0, (button2.getY() - button1.getY()));
+                        final Animation animation2 = new TranslateAnimation(0, (button1.getX() - button2.getX()), 0, (button1.getY() - button2.getY()));
+                        animation1.setDuration(300);
+                        animation2.setDuration(300);
+                        button1.startAnimation(animation1);
+                        button2.startAnimation(animation2);
+
+                        // Setting the new text at the end anc cancelling
+                        mGridView.postOnAnimationDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.d(msg, "run() called");
+                                // Set text
+                                button1.setText(mKanjiList[k]);
+                                button2.setText(mKanjiList[l]);
+                                // Cancel animation to avoid flicker
+                                animation1.cancel();
+                                animation2.cancel();
+                            }
+                        }, 300);
                     }
                 }
             }
@@ -350,6 +377,12 @@ public class MainActivity extends AppCompatActivity {
      * Also checks for board conditions and updates accordingly. */
     private void updateButtons(){
         Log.d(msg, "updateButtons() called");
+        String stateStr = "";
+        for(int s : mButtonStateList){
+            stateStr += s;
+        }
+        Log.d(msg, stateStr);
+
 
         // Check for swap and completed line conditions
         if(twoChipsSelected(mButtonStateList)) {
@@ -357,26 +390,28 @@ public class MainActivity extends AppCompatActivity {
             checkForCompletedLine();
         }
 
+        // Check board status
         if (boardIsComplete()){
             advanceLevel();
         } else {
-            Log.d(msg, "Updating button states and bg");
-            for (int i = 0; i < DIMENSIONS; i++){
-                Button uButton = findViewById(i); //local var for updating
-                if(mButtonStateList[i] == 0) {
-                    uButton.setBackgroundResource(R.drawable.chip);
-                }
-                else if (mButtonStateList[i] == 1) {
-                    uButton.setBackgroundResource(R.drawable.chip_green);
-                }
-                else if (mButtonStateList[i] == 2) {
-                    uButton.setBackgroundResource(R.drawable.chip_cross);
-                    uButton.setEnabled(false);
-                }
+            updateButtonStates();
+        }
+    }
 
-                // Set text
-                String button_text = mKanjiList[i];
-                uButton.setText(button_text);
+    private void updateButtonStates(){
+        Log.d(msg, "Updating button background and disables gray buttons");
+        for (int i = 0; i < DIMENSIONS; i++){
+            Button uButton = findViewById(i); //local var for updating
+            //Log.d(msg, "Button with id: " + uButton.getId() + " has state: " + mButtonStateList[i]);
+            if(mButtonStateList[i] == 0) {
+                uButton.setBackgroundResource(R.drawable.chip);
+            }
+            else if (mButtonStateList[i] == 1) {
+                uButton.setBackgroundResource(R.drawable.chip_green);
+            }
+            else if (mButtonStateList[i] == 2) {
+                uButton.setBackgroundResource(R.drawable.chip_cross);
+                uButton.setEnabled(false);
             }
         }
     }

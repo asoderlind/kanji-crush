@@ -21,7 +21,9 @@
     <GridView
         android:id="@+id/gridView"
         android:scrollbars="none"
-        android:stretchMode="columnWidth"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="80dp"
+        android:verticalSpacing="0dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/levelText"
