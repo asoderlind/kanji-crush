@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
     // Booleans
     private static boolean mSwapAnimationRunning;
 
+    /** Calls all the methods needed to initialize a new level */
     private void advanceLevel(){
         Log.d(msg, "advanceLevel() called");
         if (mLevel < 4){
@@ -60,7 +61,8 @@ public class MainActivity extends AppCompatActivity {
         setDimensions();
     }
 
-    /** Checks for completed lines and updates status */
+    /** Checks if a line is completed and if so calls checkCompleteBoard,
+     * otherwise calls updateButtonBackgrounds in order to deselect buttons. */
     private void checkForCompletedLine(){
         Log.d(msg,"checkForCompletedLine() called:");
         boolean lineCompleted = false;
@@ -195,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* TODO: make getKanjiList more elegant */
+    /* TODO: make sure there are no pre-completed rows */
     /** Breaks up the 3-char words into a list of single-char strings */
     private String[] getKanjiList(String[] jukuList) {
         mKanjiList = new String[jukuList.length*3];
@@ -218,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
         return result;
     }
 
+    /** Button used mainly for debugging as of now */
     private void initDebugButton() {
         Button debugButton;
         debugButton = findViewById(R.id.btnSubmit);
@@ -231,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /** Create and assign the lists*/
+    /** Create and assign the various lists */
     private void initLists() {
         Log.d(msg, "initLists() called");
         mJukuList = getJukuList(mNumWords);
@@ -265,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
         mGridView.setNumColumns(COLUMNS);
     }
 
-    // Debugging the state list
+    /** Print the state list to log*/
     private void logStateList() {
         StringBuilder stateStr = new StringBuilder();
         for(int s : mButtonStateList){
@@ -274,6 +278,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(msg, stateStr.toString());
     }
 
+    /** Listener that is called when the animation is completely finished */
     private Animation.AnimationListener myAnimationListener(){
         return new Animation.AnimationListener() {
             @Override
@@ -296,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+    /** Listens for clicks on the chips */
     private View.OnClickListener myOnClickListener(int button_id){
         return new View.OnClickListener() {
             @Override
@@ -440,16 +446,20 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < DIMENSIONS; i++){
             Button uButton = findViewById(i); //local var for updating
             //Log.d(msg, "Button with id: " + uButton.getId() + " has state: " + mButtonStateList[i]);
-            if(mButtonStateList[i] == 0) {
-                uButton.setBackgroundResource(R.drawable.button_selector_default);
-
-            }
-            else if (mButtonStateList[i] == 1) {
-                uButton.setBackgroundResource(R.drawable.button_selector_selected);
-         }
-            else if (mButtonStateList[i] == 2) {
-                uButton.setBackgroundResource(R.drawable.button_selector_completed);
-                uButton.setEnabled(false);
+            // TODO: make try-catch block obsolete by making sure the buttons are never NULL
+            try{
+                if(mButtonStateList[i] == 0) {
+                    uButton.setBackgroundResource(R.drawable.button_selector_default);
+                }
+                else if (mButtonStateList[i] == 1) {
+                    uButton.setBackgroundResource(R.drawable.button_selector_selected);
+             }
+                else if (mButtonStateList[i] == 2) {
+                    uButton.setBackgroundResource(R.drawable.button_selector_completed);
+                    uButton.setEnabled(false);
+                }
+            } catch (NullPointerException e) {
+                e.printStackTrace();
             }
         }
     }
