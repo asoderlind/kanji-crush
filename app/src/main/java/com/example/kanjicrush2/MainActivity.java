@@ -9,7 +9,6 @@ import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
-import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.TextView;
 
@@ -42,8 +41,11 @@ public class MainActivity extends AppCompatActivity {
     private static String[] mKanjiList;
     private static int[] mButtonStateList;
 
+    // Booleans
+    private static boolean mSwapAnimationRunning;
+
     private void advanceLevel(){
-        Log.d(msg, "The board is complete, next level can be loaded");
+        Log.d(msg, "advanceLevel() called");
         if (mLevel < 4){
             mLevel++;
         } else {
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     /** Checks for completed lines and updates status */
     private void checkForCompletedLine(){
         Log.d(msg,"checkForCompletedLine() called:");
+        boolean lineCompleted = false;
         for (int i = 0; i < mKanjiList.length/3; i++){
             String candidate;
             if (i >= COLUMNS){
@@ -73,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
             //Log.d(msg,candidate);
             for (String juku : mJukuList) {
                 if (candidate.equals(juku)) {
+                    lineCompleted = true;
                     if (i >= COLUMNS) {
                         mButtonStateList[i + (2 * COLUMNS)] = 2;
                         mButtonStateList[i + (3 * COLUMNS)] = 2;
@@ -82,28 +86,37 @@ public class MainActivity extends AppCompatActivity {
                         mButtonStateList[i + COLUMNS] = 2;
                         mButtonStateList[i + 2 * COLUMNS] = 2;
                     }
-                    // One more line is completed
-                    updateButtonBackgrounds();
-                    checkForCompletedBoard();
+                    Log.d(msg,"Line completed, calling checkForCompletedBoard");
+                    checkForCompleteBoard();
                 }
             }
         }
+
+        if(!lineCompleted){
+            Log.d(msg,"no line completed, deselect buttons, calling UBG");
+            updateButtonBackgrounds();
+        }
     }
 
-    /** Checks for completed board */
-    private void checkForCompletedBoard() {
+    /** Checks if all chips are completed, in that case advance level, otherwise
+     * simply update the newly completed line by calling updateButtonBg function */
+    private void checkForCompleteBoard() {
         Log.d(msg,"checkForCompletedBoard() called");
         int numCompleted = 0;
         for (int i = 0; i < DIMENSIONS; i++) {
             if (mButtonStateList[i] == 2) numCompleted++;
         }
-        if (numCompleted == DIMENSIONS){
-            // The board is complete
+
+        if (numCompleted == DIMENSIONS && !mSwapAnimationRunning){
             advanceLevel();
+        } else {
+            Log.d(msg,"no clear, update finished line, calling UBG");
+            updateButtonBackgrounds(); // update finished line
         }
     }
 
-    /** Checks for 2 selected chips */
+    /** Checks for 2 or more selected chips, in that case swap, otherwise
+     * select/deselect the button by calling updateButtonBackgrounds */
     private void checkForSelectedChips() {
         Log.d(msg, "checkForSelectedChips() called");
         int count = 0;
@@ -115,23 +128,27 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-        updateButtonBackgrounds();
+
+        if (count <= 1) {
+            Log.d(msg,"no swap, select or deselect single button, calling UBG");
+            updateButtonBackgrounds(); // select or deselect single button
+        }
     }
 
-    /** Makes an ArrayList of button-objects from context and sends to our Adapter */
+    /** Init adapter with default buttons and set to mGridView. */
     private void display(Context context) {
         Log.d(msg,"display() called");
-        // This sends the view to the adapter which actually puts it on the screen
-        mGridView.setAdapter(new CustomAdapter(getButtons(context), mColumnWidth, mColumnHeight));
+        CustomAdapter adapter = new CustomAdapter(getButtons(context), mColumnWidth, mColumnHeight);
+        mGridView.setAdapter(adapter);
     }
 
-    /** Initialize the buttons and put them in a list, which is returned */
+    /** Initialize the buttons and set default attributes */
     private ArrayList<Button> getButtons(Context context) {
         Log.d(msg,"getButtons() called");
         ArrayList<Button> buttons = new ArrayList<>();
         for (int i = 0; i < DIMENSIONS; i++) {
+            // Add extra row of empty invisible buttons for spacing purposes
             if (ROWS/3 > 1) {
-                // Add extra row of empty invisible buttons
                 if (i == DIMENSIONS/2){
                     Log.d(msg,"i = " + i);
                     Log.d(msg,"we are in the beginning of the middle row");
@@ -144,29 +161,15 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
+
+            // Init button and set attributes
             final Button button= new Button(context);
             button.setId(i);
-
-            // Set default text
-            String button_text = mKanjiList[button.getId()];
-            button.setText(button_text);
+            button.setText(mKanjiList[button.getId()]);
             button.setTextColor(Color.parseColor("#FFFFFFFF"));
             button.setTextSize(35);
-
-            // set selector
             button.setBackgroundResource(R.drawable.button_selector_default);
-
-            /* TODO: make the listener a separate class */
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.d(msg, "onClick() called @ id " + button.getId());
-                    if (mButtonStateList[button.getId()] == 0) mButtonStateList[button.getId()] = 1;
-                    else mButtonStateList[button.getId()] = 0;
-                    //logStateList();
-                    checkForSelectedChips();
-                }
-            });
+            button.setOnClickListener(myOnClickListener(i));
             buttons.add(button);
         }
         return buttons;
@@ -271,6 +274,41 @@ public class MainActivity extends AppCompatActivity {
         Log.d(msg, stateStr.toString());
     }
 
+    private Animation.AnimationListener myAnimationListener(){
+        return new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                // Calling for a second time, after animation has ended, to maybe load the next level
+                Log.d(msg, "Calling checkForCompletedLine() from onAnimationEnd()");
+                mSwapAnimationRunning = false;
+                checkForCompletedLine();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        };
+    }
+
+    private View.OnClickListener myOnClickListener(int button_id){
+        return new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Log.d(msg, "onClick() called @ id " + button_id);
+                if (mButtonStateList[button_id] == 0) mButtonStateList[button_id] = 1;
+                else mButtonStateList[button_id] = 0;
+                logStateList();
+                checkForSelectedChips();
+            }
+        };
+    }
+
     /** Called when the activity is first created. */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -361,32 +399,42 @@ public class MainActivity extends AppCompatActivity {
                         Button button2 = (Button)findViewById(j);
                         final Animation animation1 = new TranslateAnimation(0, (button2.getX() - button1.getX()), 0, (button2.getY() - button1.getY()));
                         final Animation animation2 = new TranslateAnimation(0, (button1.getX() - button2.getX()), 0, (button1.getY() - button2.getY()));
-                        animation1.setDuration(300);
-                        animation2.setDuration(300);
+                        animation1.setDuration(350);
+                        animation2.setDuration(350);
                         button1.startAnimation(animation1);
                         button2.startAnimation(animation2);
 
-                        // Setting the new text at the end anc cancelling
+                        mSwapAnimationRunning = true;
+
+                        // We only need one animation listener
+                        animation1.setAnimationListener(myAnimationListener());
+
+                        // Setting up delayed function to be called right when animations are about to end
                         mGridView.postOnAnimationDelayed(new Runnable() {
                             @Override
                             public void run() {
                                 Log.d(msg, "run() called");
-                                // Set text
+
+                                // Prepare text before cancellation of animation
                                 button1.setText(mKanjiList[k]);
                                 button2.setText(mKanjiList[l]);
+
+                                // Calling for the first time, to prepare backgrounds of buttons before cancellation of animation
+                                Log.d(msg, "checkForCompletedLine() from run()");
                                 checkForCompletedLine();
 
-                                // Cancel animation to avoid flicker
+                                // Cancel animation to avoid potential flickering @ end of animation
                                 animation1.cancel();
                                 animation2.cancel();
                             }
-                        }, 300);
+                        }, 350);
                     }
                 }
             }
         }
     }
 
+    // TODO: make more elegant solution to try-catch blocks
     private void updateButtonBackgrounds(){
         Log.d(msg, "updateButtonBackgrounds() called");
         for (int i = 0; i < DIMENSIONS; i++){
@@ -394,14 +442,19 @@ public class MainActivity extends AppCompatActivity {
             //Log.d(msg, "Button with id: " + uButton.getId() + " has state: " + mButtonStateList[i]);
             if(mButtonStateList[i] == 0) {
                 uButton.setBackgroundResource(R.drawable.button_selector_default);
+
             }
             else if (mButtonStateList[i] == 1) {
                 uButton.setBackgroundResource(R.drawable.button_selector_selected);
-            }
+         }
             else if (mButtonStateList[i] == 2) {
                 uButton.setBackgroundResource(R.drawable.button_selector_completed);
                 uButton.setEnabled(false);
             }
         }
+    }
+
+    private void showVictoryScreen(){
+        Log.d(msg, "showVictoryScreen() called");
     }
 }
