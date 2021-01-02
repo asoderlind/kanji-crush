@@ -3,4 +3,7 @@
     <string name="lower_button_text">Next level</string>
     <string name="reset">Start over</string>
     <string name="instructionString">漢字を入れ替えて三字熟語を完成させよう！</string>
+    <string name="settings_text">Reset progress</string>
+    <string name="start_game_text">Start Game</string>
+    <string name="menu_title_text">Kanji Crush</string>
 </resources>

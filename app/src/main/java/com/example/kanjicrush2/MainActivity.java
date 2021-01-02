@@ -1,6 +1,7 @@
 package com.example.kanjicrush2;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -42,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
     private static int[] mButtonStateList;
 
     private static boolean mSwapAnimationRunning;
-    private long pressedTime;
 
     /** Calls all the methods needed to initialize a new level */
     private void advanceLevel(){
@@ -168,12 +168,12 @@ public class MainActivity extends AppCompatActivity {
             if (ROWS/3 > 1) {
                 if (i == DIMENSIONS/2){
                     Log.d(msg,"i = " + i);
-                    Log.d(msg,"we are in the beginning of the middle row");
+                    //Log.d(msg,"we are in the beginning of the middle row");
                     Button button= new Button(context);
                     button.setVisibility(Button.INVISIBLE);
                     button.setEnabled(false);
                     for(int j=0; j < COLUMNS; j++){
-                        Log.d(msg,"Adding button + " + j);
+                        //Log.d(msg,"Adding button + " + j);
                         buttons.add(button);
                     }
                 }
@@ -350,13 +350,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Log.d(msg, "The onBackPressed() event");
-        if (pressedTime + 2000 > System.currentTimeMillis()) {
-            super.onBackPressed();
-            finish();
-        } else {
-            Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT).show();
-        }
-        pressedTime = System.currentTimeMillis();
+        super.onBackPressed();
+        Intent menuIntent = new Intent(MainActivity.this, MenuActivity.class);
+        startActivity(menuIntent);
     }
 
     /** Called when the activity is first created. */
