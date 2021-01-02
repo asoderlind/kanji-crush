@@ -13,7 +13,7 @@
     <TextView
         android:id="@+id/levelText"
         android:textColor="@color/black"
-        android:textSize="25dp"
+        android:textSize="25sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
@@ -31,11 +31,22 @@
         android:background="@color/grey_darkest"
         />
 
+    <TextView
+        android:id="@+id/instructionText"
+        android:text="@string/instructionString"
+        android:textColor="@color/grey_6"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/btnSubmit"
+        android:layout_centerHorizontal="true"
+        />
+
     <Button
         android:id="@+id/btnSubmit"
         android:textColor="@color/white"
         android:layout_alignParentBottom="true"
-        android:layout_height="40dp"
+        android:layout_height="60dp"
         android:layout_width="fill_parent"
         />
 </RelativeLayout>
