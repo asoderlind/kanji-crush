@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Kanji Crush</string>
     <string name="lower_button_text">Next level</string>
+    <string name="reset">Start over</string>
     <string name="instructionString">漢字を入れ替えて三字熟語を完成させよう！</string>
 </resources>
