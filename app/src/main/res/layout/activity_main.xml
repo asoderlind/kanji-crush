@@ -14,6 +14,7 @@
         android:id="@+id/levelText"
         android:textColor="@color/black"
         android:textSize="25sp"
+        android:layout_marginTop="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"

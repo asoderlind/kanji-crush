@@ -12,6 +12,7 @@ import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -40,8 +41,8 @@ public class MainActivity extends AppCompatActivity {
     private static String mKanjis;
     private static int[] mButtonStateList;
 
-    // Booleans
     private static boolean mSwapAnimationRunning;
+    private long pressedTime;
 
     /** Calls all the methods needed to initialize a new level */
     private void advanceLevel(){
@@ -256,7 +257,6 @@ public class MainActivity extends AppCompatActivity {
         nextLevelButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                Log.d(msg, "debug button pressed");
                 advanceLevel();
             }
         });
@@ -345,6 +345,18 @@ public class MainActivity extends AppCompatActivity {
                 checkForSelectedChips();
             }
         };
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d(msg, "The onBackPressed() event");
+        if (pressedTime + 2000 > System.currentTimeMillis()) {
+            super.onBackPressed();
+            finish();
+        } else {
+            Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT).show();
+        }
+        pressedTime = System.currentTimeMillis();
     }
 
     /** Called when the activity is first created. */
