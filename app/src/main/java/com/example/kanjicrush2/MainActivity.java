@@ -13,7 +13,6 @@ import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -53,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize new variables
         mJukus = getJukus(4 + mLevel*2);
-        mKanjis = getScrambled(mJukus);
+        mKanjis = scrambledString(mJukus);
         ROWS = mLevelDimensions[mLevel][0];
         COLUMNS = mLevelDimensions[mLevel][1];
         DIMENSIONS = ROWS*COLUMNS;
@@ -224,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Scramble the string */
-    public static String getScrambled(String s) {
+    public static String scrambledString(String s) {
         String[] scram = s.split("");
         List<String> letters = Arrays.asList(scram);
         Collections.shuffle(letters);
@@ -349,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Log.d(msg, "The onBackPressed() event");
+        Log.d(msg, "The onBackPressed() (GAME) event");
         super.onBackPressed();
         Intent menuIntent = new Intent(MainActivity.this, MenuActivity.class);
         startActivity(menuIntent);
@@ -364,7 +363,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (!loadSharedPreferences()){
             mJukus = getJukus(mNumWordsStart);
-            mKanjis = getScrambled(mJukus);
+            mKanjis = scrambledString(mJukus);
             ROWS = mLevelDimensions[mLevel][0];
             COLUMNS = mLevelDimensions[mLevel][1];
             DIMENSIONS = ROWS*COLUMNS;
