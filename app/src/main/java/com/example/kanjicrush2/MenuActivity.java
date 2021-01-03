@@ -10,8 +10,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import static com.example.kanjicrush2.MainActivity.msg;
-
 public class MenuActivity extends AppCompatActivity {
     String msg = "Android :";
     private long pressedTime;
@@ -27,7 +25,7 @@ public class MenuActivity extends AppCompatActivity {
         startButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.d(msg, "The onClick() (mainActivity) event");
-                Intent mainIntent = new Intent(MenuActivity.this, MainActivity.class);
+                Intent mainIntent = new Intent(MenuActivity.this, GamePlayActivity.class);
                 startActivity(mainIntent);
             }
         });

@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity {
+public class GamePlayActivity extends AppCompatActivity {
     private GridView mGridView;
     public static final String msg = "Android : ";
 
@@ -350,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         Log.d(msg, "The onBackPressed() (GAME) event");
         super.onBackPressed();
-        Intent menuIntent = new Intent(MainActivity.this, MenuActivity.class);
+        Intent menuIntent = new Intent(GamePlayActivity.this, MenuActivity.class);
         startActivity(menuIntent);
     }
 
