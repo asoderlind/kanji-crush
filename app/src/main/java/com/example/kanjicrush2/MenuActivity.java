@@ -1,9 +1,12 @@
 package com.example.kanjicrush2;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -21,7 +24,7 @@ public class MenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
 
-        Button startButton = (Button)findViewById(R.id.startGameButton);
+        Button startButton = findViewById(R.id.startGameButton);
         startButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.d(msg, "The onClick() (mainActivity) event");
@@ -30,17 +33,17 @@ public class MenuActivity extends AppCompatActivity {
             }
         });
 
-        Button settingsButton = (Button)findViewById(R.id.settingsButton);
+        Button settingsButton = findViewById(R.id.settingsButton);
         settingsButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Log.d(msg, "The onClick() (cleardata) event");
-                if (pressedTimeData + 2000 > System.currentTimeMillis()) {
-                    Toast.makeText(getBaseContext(), "Progress reset", Toast.LENGTH_SHORT).show();
-                    deleteSharedPreferences();
-                } else {
-                    Toast.makeText(getBaseContext(), "Press again to reset progress", Toast.LENGTH_SHORT).show();
-                }
-                pressedTimeData = System.currentTimeMillis();
+                new AlertDialog.Builder(MenuActivity.this)
+                        .setTitle("Erasing local data").setMessage("Are you sure you want to erase all game progress?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                deleteSharedPreferences();
+                            }
+                        }).setNegativeButton("No", null).show();
             }
         });
 
@@ -52,6 +55,7 @@ public class MenuActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.clear();
         editor.commit();
+        Toast.makeText(getBaseContext(), "Data reset", Toast.LENGTH_SHORT).show();
     }
 
     @Override
