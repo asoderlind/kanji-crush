@@ -1,8 +1,10 @@
 package com.example.kanjicrush2;
 
-import android.util.Log;
+import android.content.res.Resources;
+import android.content.Context;
 
-import java.io.InputStream;
+import android.util.Log;
+import android.util.TypedValue;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -45,5 +47,11 @@ public final class Utils {
             sb.append(c);
         }
         return sb.toString();
+    }
+
+    /** Converts dp to pixels */
+    public static int dpToPx(float dp, Context c){
+        Resources r = c.getResources();
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics());
     }
 }

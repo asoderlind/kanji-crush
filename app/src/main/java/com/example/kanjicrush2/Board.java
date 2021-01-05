@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.io.InputStream;
-import java.util.List;
 
 public class Board {
     private final String msg = "Board :";

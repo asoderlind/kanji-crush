@@ -9,11 +9,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,6 +29,9 @@ public class GamePlayActivity extends AppCompatActivity {
     private GridView mGridView;
     private Board mBoard;
     private static int mLevel;
+    private static final float buttonSizeDp = 55f;
+    private static final float horizontalSpacingDp = 10f;
+    private static final float verticalSpacingDp = 1f;
 
     /** Called when the activity is first created. */
     @Override
@@ -43,11 +48,9 @@ public class GamePlayActivity extends AppCompatActivity {
         mBoard.load(sharedPref, mLevel);
         mBoard.log();
 
-        // these depend on the current activity
-        initLevelText(); // OK
-        initNextLevelButton(); // OK
-
-        initView(); // OK
+        initLevelText();
+        initNextLevelButton();
+        initView();
         setDimensions();
     }
 
@@ -75,18 +78,16 @@ public class GamePlayActivity extends AppCompatActivity {
         startActivity(menuIntent);
     }
 
-    /** Calls all the methods needed to initialize a new level */
     private void advanceLevel(){
         Log.d(msg, "advanceLevel() called");
 
-        // increase level if below level 5, else reset to 0 and reset board
+        // increase level if below level 5, else reset to 0
         mLevel = (mLevel < 4) ? mLevel + 1 : 0;
 
-        // re-instantiate the board
+        // re-instantiate the board with the new level
         mBoard = new Board(getApplicationContext(), mLevel);
         mBoard.log();
 
-        // Update the level
         initView();
         initLevelText();
         initNextLevelButton();
@@ -103,6 +104,7 @@ public class GamePlayActivity extends AppCompatActivity {
         Log.d(msg,"getButtons() called");
         ArrayList<Button> buttons = new ArrayList<>();
         for (int i = 0; i < mBoard.getDimensions(); i++) {
+
             // Add extra row of empty invisible buttons for spacing purposes
             if (mBoard.getRows()/3 > 1) {
                 if (i == mBoard.getDimensions()/2){
@@ -117,6 +119,7 @@ public class GamePlayActivity extends AppCompatActivity {
                     }
                 }
             }
+
             // Init button and set attributes
             final Button button= new Button(context);
             button.setId(i);
@@ -126,7 +129,7 @@ public class GamePlayActivity extends AppCompatActivity {
             button.setTextSize(35);
             button.setOnClickListener(myOnClickListener(i));
 
-            //Setting initial bg in case of a loaded game
+            //Setting initial bg
             if(mBoard.getStateAt(i) == 0) {
                 button.setBackgroundResource(R.drawable.button_selector_default);
             }
@@ -142,20 +145,17 @@ public class GamePlayActivity extends AppCompatActivity {
         return buttons;
     }
 
-    /** Listens for clicks on the chips */
+    /** Listens for clicks on the buttons */
     private View.OnClickListener myOnClickListener(int button_id){
-        return new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(msg, "onClick() called");
-                if (mBoard.getStateAt(button_id) == 0) mBoard.setState(button_id, 1);
-                else mBoard.setState(button_id, 0);
+        return v -> {
+            Log.d(msg, "onClick() called");
+            if (mBoard.getStateAt(button_id) == 0) mBoard.setState(button_id, 1);
+            else mBoard.setState(button_id, 0);
 
-                mBoard.log();
+            mBoard.log();
 
-                if(mBoard.twoChipsAreSelected()) swapChips();
-                else updateButtonBackgrounds();
-            }
+            if(mBoard.twoChipsAreSelected()) swapChips();
+            else updateButtonBackgrounds();
         };
     }
 
@@ -177,12 +177,7 @@ public class GamePlayActivity extends AppCompatActivity {
         nextLevelButton.setText(R.string.lower_button_text);
         nextLevelButton.setEnabled(false);
         nextLevelButton.setBackgroundResource(R.drawable.button_selector_next);
-        nextLevelButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                advanceLevel();
-            }
-        });
+        nextLevelButton.setOnClickListener(v -> advanceLevel());
     }
 
     private void enableNextLevelButton() {
@@ -204,9 +199,12 @@ public class GamePlayActivity extends AppCompatActivity {
         Log.d(msg, "initView() called");
         mGridView = findViewById(R.id.gridView);
         mGridView.setNumColumns(mBoard.getColumns());
+        mGridView.setColumnWidth(Utils.dpToPx(buttonSizeDp, getApplicationContext()));
+        mGridView.setHorizontalSpacing(Utils.dpToPx(horizontalSpacingDp, getApplicationContext()));
+        mGridView.setVerticalSpacing(Utils.dpToPx(verticalSpacingDp, getApplicationContext()));
     }
 
-    /** Sets dimensions buttons and calls display()*/
+    /** Sets dimensions with centered spacing and calls display()*/
     private void setDimensions() {
         Log.d(msg, "setDimensions() called");
         ViewTreeObserver vto = mGridView.getViewTreeObserver();
@@ -215,44 +213,22 @@ public class GamePlayActivity extends AppCompatActivity {
             public void onGlobalLayout() {
                 Log.d(msg, "onGlobalLayout called");
                 mGridView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                int displayWidth = mGridView.getMeasuredWidth() - 100; // -100 to give extra side margins
+                int displayWidth = mGridView.getMeasuredWidth();
                 int displayHeight = mGridView.getMeasuredHeight();
 
-                int statusbarHeight = getStatusBarHeight(getApplicationContext());
-                int requiredHeight = displayHeight - statusbarHeight;
+                int buttonSizePx = Utils.dpToPx(buttonSizeDp, getApplicationContext());
+                int horizontalSpacingPx = Utils.dpToPx(horizontalSpacingDp, getApplicationContext());
+                int verticalAdjustmentPx = Utils.dpToPx(30f, getApplicationContext());
 
-                int columnWidth = displayWidth / mBoard.getColumns();
-                int columnHeight = (mLevel > 0) ? requiredHeight / (mBoard.getRows() + 1) : requiredHeight / mBoard.getRows();
-                setPadding();
+                int horizontalPadding = (displayWidth - mBoard.getColumns()*buttonSizePx - horizontalSpacingPx*(mBoard.getColumns() - 1))/2;
+                int verticalPadding = (mLevel > 0)
+                        ? (displayHeight - (mBoard.getRows() + 1)*buttonSizePx)/2 - verticalAdjustmentPx
+                        : (displayHeight - mBoard.getRows()*buttonSizePx)/2 - verticalAdjustmentPx;
 
-                Log.d(msg, "Column dimensions: " + (columnWidth) + "x" + (columnHeight));
-                display(getApplicationContext(), columnWidth, columnHeight);
+                mGridView.setPadding(horizontalPadding, verticalPadding,0,0);
+                display(getApplicationContext(), buttonSizePx, buttonSizePx);
             }
         });
-    }
-
-    /** Sets extra padding for level 1 but not for other levels */
-    private void setPadding() {
-        if (mLevel == 0){
-            // Converts 20 dip into its equivalent px and set padding
-            float dip = 140f;
-            Resources r = getResources();
-            float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip, r.getDisplayMetrics());
-            mGridView.setPadding(0, (int) px,0,0);
-        } else {
-            mGridView.setPadding(0, 0,0,0);
-        }
-    }
-
-    private int getStatusBarHeight(Context context){
-        int result = 0;
-        int resourceId = context.getResources().getIdentifier("status_bar_height",
-                "dimen",
-                "android");
-        if (resourceId > 0) {
-            result = context.getResources().getDimensionPixelSize(resourceId);
-        }
-        return result;
     }
 
     private void saveSharedPreferences(){
@@ -272,44 +248,38 @@ public class GamePlayActivity extends AppCompatActivity {
                         mBoard.setState(i,0);
                         mBoard.setState(j,0);
                         mBoard.switchKanji(i, j);
-                        int k = i;
-                        int l = j;
-
-                        // Animation step
-                        Button button1 = findViewById(i);
-                        Button button2 = findViewById(j);
-                        final Animation animation1 = new TranslateAnimation(0, (button2.getX() - button1.getX()), 0, (button2.getY() - button1.getY()));
-                        final Animation animation2 = new TranslateAnimation(0, (button1.getX() - button2.getX()), 0, (button1.getY() - button2.getY()));
-                        animation1.setDuration(350);
-                        animation2.setDuration(350);
-                        button1.startAnimation(animation1);
-                        button2.startAnimation(animation2);
-
-                        // Setting up delayed run function to be called right when animations are about to end
-                        mGridView.postOnAnimationDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.d(msg, "run() called");
-
-                                // Prepare text before cancellation of animation
-                                button1.setText(mBoard.getKanjiAt(k));
-                                button2.setText(mBoard.getKanjiAt(l));
-
-                                // Prepare backgrounds of buttons before cancellation of animation
-                                updateBoard();
-
-                                // Cancel animation to avoid potential flickering @ end of animation
-                                animation1.cancel();
-                                animation2.cancel();
-                            }
-                        }, 350);
+                        swapAnimation(i,j);
                     }
                 }
             }
         }
     }
 
-    // TODO: make more elegant solution to try-catch blocks
+    private void swapAnimation(int i, int j){
+        Button button1 = findViewById(i);
+        Button button2 = findViewById(j);
+        final Animation animation1 = new TranslateAnimation(0, (button2.getX() - button1.getX()), 0, (button2.getY() - button1.getY()));
+        final Animation animation2 = new TranslateAnimation(0, (button1.getX() - button2.getX()), 0, (button1.getY() - button2.getY()));
+        animation1.setDuration(350);
+        animation2.setDuration(350);
+        button1.startAnimation(animation1);
+        button2.startAnimation(animation2);
+
+        // Setting up delayed run function to be called right when animations are about to end
+        mGridView.postOnAnimationDelayed(() -> {
+            // Prepare text before cancellation of animation
+            button1.setText(mBoard.getKanjiAt(i));
+            button2.setText(mBoard.getKanjiAt(j));
+
+            // update board and backgrounds of buttons before cancellation of animation
+            updateBoard();
+
+            // Cancel animation to avoid potential flickering at the end of animation
+            animation1.cancel();
+            animation2.cancel();
+        }, 350);
+    }
+
     private void updateButtonBackgrounds(){
         Log.d(msg, "updateButtonBackgrounds() called");
         if(findViewById(0) != null){
