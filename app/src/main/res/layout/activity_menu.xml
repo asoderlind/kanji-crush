@@ -7,12 +7,20 @@
     tools:context=".MenuActivity"
     android:background="@color/grey_darkest">
 
+    <ImageView
+        android:id="@+id/titleImage"
+        android:background="@drawable/title_screen"
+        android:layout_marginTop="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"/>
+
     <RelativeLayout
+        android:id="@+id/relLayout"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true">
-
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/titleImage">
         <Button
             android:id="@+id/startGameButton"
             android:text="@string/start_game_text"

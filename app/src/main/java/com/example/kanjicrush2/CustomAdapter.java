@@ -1,16 +1,10 @@
 package com.example.kanjicrush2;
 
-import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.GridLayout;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.ToggleButton;
-
-import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 
@@ -48,14 +42,7 @@ public class CustomAdapter extends BaseAdapter {
             button = mButtons.get(position);
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
             params.width = mColumnWidth;
-
-            if (mColumnHeight > mColumnWidth){
-                params.height = mColumnWidth;
-            } else {
-                params.height = mColumnHeight;
-            }
-
-            button.setLayoutParams(params);
+            params.height = mColumnHeight;
             button.setLayoutParams(params);
         }else{
             button = (Button)convertView;
