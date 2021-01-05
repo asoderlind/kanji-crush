@@ -3,4 +3,4 @@ A very simple word puzzle game where you switch characters in tiles to create ja
 
 ## Screenshots
 
-![Screenshot 1](sc/sc.jpg)
+![Screenshot 1](sc/sc2.jpg)
