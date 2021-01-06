@@ -1,4 +1,4 @@
-package com.example.kanjicrush2;
+package kanjiCrush.game;
 
 import android.content.res.Resources;
 import android.content.Context;

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    tools:context=".GamePlayActivity"
+    tools:context=".game.GamePlayActivity"
     android:background="@color/grey_darkest">
 
     <TextView

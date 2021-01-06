@@ -1,4 +1,4 @@
-package com.example.kanjicrush2;
+package kanjiCrush.game;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
