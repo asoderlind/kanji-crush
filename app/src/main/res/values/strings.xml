@@ -2,8 +2,15 @@
     <string name="app_name">Kanji Crush</string>
     <string name="lower_button_text">Next level</string>
     <string name="reset">Start over</string>
+    <string name="reset_text">Reset progress</string>
+    <string name="reset_button">reset</string>
     <string name="instructionString">漢字を入れ替えて三字熟語を完成させよう！</string>
-    <string name="settings_text">Reset progress</string>
     <string name="start_game_text">Start Game</string>
     <string name="menu_title_text">Kanji Crush</string>
+    <string name="switch_title">Switch preference</string>
+    <string name="switch_summary">Turn this option on or off</string>
+    <string name="preferences_text">Settings</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_image">Title image</string>
 </resources>

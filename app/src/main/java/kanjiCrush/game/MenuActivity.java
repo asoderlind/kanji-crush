@@ -2,7 +2,7 @@ package kanjiCrush.game;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
+import androidx.preference.PreferenceManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,7 +15,6 @@ import android.widget.Toast;
 public class MenuActivity extends AppCompatActivity {
     String msg = "Android :";
     private long pressedTime;
-    private long pressedTimeData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +22,11 @@ public class MenuActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
 
+        /* Set animation */
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_left);
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+
+        /* Button to start the game */
         Button startButton = findViewById(R.id.startGameButton);
         startButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -31,9 +35,10 @@ public class MenuActivity extends AppCompatActivity {
                 startActivity(mainIntent);
             }
         });
-
-        Button settingsButton = findViewById(R.id.settingsButton);
-        settingsButton.setOnClickListener(new View.OnClickListener() {
+        
+        /* Button to delete all data */
+        Button resetButton = findViewById(R.id.resetButton);
+        resetButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 new AlertDialog.Builder(MenuActivity.this)
                         .setTitle("Erasing local data").setMessage("Are you sure you want to erase all game progress?")
@@ -45,9 +50,20 @@ public class MenuActivity extends AppCompatActivity {
                         }).setNegativeButton("No", null).show();
             }
         });
-
+        
+        /* Button to open settings menu */
+        Button preferencesButton = findViewById(R.id.preferencesButton);
+        preferencesButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Log.d(msg, "The onClick() (SettingsActivity) event");
+                Intent intent = new Intent(MenuActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
+    /** Deletes all shared preferences under 'mySettings'
+     * which includes current level, board placement etc. */
     public void deleteSharedPreferences(){
         Log.d(msg, "The deleteSharedPreferences() method");
         SharedPreferences sharedPref = getSharedPreferences("mySettings", MODE_PRIVATE);

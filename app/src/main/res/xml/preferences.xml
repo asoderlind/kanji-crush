@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ListPreference
+        android:summary="%s"
+        android:key="list_preference"
+        android:title="Button size"
+        android:defaultValue="55"
+        android:entries="@array/buttonSizesKeys"
+        android:entryValues="@array/buttonSizesValues"
+        />
+
+</PreferenceScreen>

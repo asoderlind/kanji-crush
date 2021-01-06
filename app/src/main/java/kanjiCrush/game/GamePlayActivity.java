@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
 
@@ -24,7 +25,7 @@ public class GamePlayActivity extends AppCompatActivity {
     private GridView mGridView;
     private Board mBoard;
     private static int mLevel;
-    private static final float buttonSizeDp = 55f;
+    private static float buttonSizeDp = 55f;
     private static final float horizontalSpacingDp = 10f;
     private static final float verticalSpacingDp = 1f;
 
@@ -34,9 +35,16 @@ public class GamePlayActivity extends AppCompatActivity {
         Log.d(msg, "The onCreate() event");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_right);
 
+        // Loads game attributes
         SharedPreferences sharedPref = getSharedPreferences("mySettings", MODE_PRIVATE);
         mLevel = sharedPref.getInt("myLevel", 0);
+
+        // Loads button size
+        SharedPreferences defSharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        buttonSizeDp = Float.parseFloat(defSharedPref.getString("list_preference", "55"));
+        Log.d(msg, "buttonSizeDp: " + buttonSizeDp);
 
         // Loading board
         mBoard = new Board(getApplicationContext(), mLevel);
