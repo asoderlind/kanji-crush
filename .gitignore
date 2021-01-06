@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+/app/src/main/res/drawable/title_screen.png
+/app/src/main/res/font

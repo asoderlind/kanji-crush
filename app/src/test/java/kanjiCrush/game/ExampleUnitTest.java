@@ -1,4 +1,4 @@
-package com.example.kanjicrush2;
+package kanjiCrush.game;
 
 import org.junit.Test;
 
