@@ -25,7 +25,8 @@ public class GamePlayActivity extends AppCompatActivity {
     private GridView mGridView;
     private Board mBoard;
     private static int mLevel;
-    private static float buttonSizeDp = 55f;
+    private static int textSizeSp = 35;
+    private static float buttonSizeDp;
     private static final float horizontalSpacingDp = 10f;
     private static final float verticalSpacingDp = 1f;
 
@@ -37,14 +38,15 @@ public class GamePlayActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_right);
 
-        // Loads game attributes
+        // Loads game attributes from shared preferences
         SharedPreferences sharedPref = getSharedPreferences("mySettings", MODE_PRIVATE);
         mLevel = sharedPref.getInt("myLevel", 0);
 
-        // Loads button size
+        // Loads button size from default preferences
         SharedPreferences defSharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        buttonSizeDp = Float.parseFloat(defSharedPref.getString("list_preference", "55"));
-        Log.d(msg, "buttonSizeDp: " + buttonSizeDp);
+        buttonSizeDp = Float.parseFloat(defSharedPref.getString("list_preference_button_size", "55"));
+        textSizeSp = Integer.parseInt(defSharedPref.getString("list_preference_text_size", "35"));
+        Log.d(msg, "buttonSizeDp: " + buttonSizeDp + ", textSizeSp: " + textSizeSp);
 
         // Loading board
         mBoard = new Board(getApplicationContext(), mLevel);
@@ -129,7 +131,7 @@ public class GamePlayActivity extends AppCompatActivity {
             button.setText(mBoard.getKanjiAt(i));
             button.setTypeface(ResourcesCompat.getFont(context, R.font.geneichikugomin));
             button.setTextColor(Color.parseColor("#FFFFFFFF"));
-            button.setTextSize(35);
+            button.setTextSize(textSizeSp);
             button.setOnClickListener(myOnClickListener(i));
 
             //Setting initial bg

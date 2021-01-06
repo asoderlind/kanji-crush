@@ -10,4 +10,15 @@
         <item>55</item>
         <item>65</item>
     </string-array>
+
+    <string-array name="textSizesKeys">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+    <string-array name="textSizesValues">
+        <item>25</item>
+        <item>35</item>
+        <item>45</item>
+    </string-array>
 </resources>

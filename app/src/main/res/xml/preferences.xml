@@ -3,11 +3,22 @@
 
     <ListPreference
         android:summary="%s"
-        android:key="list_preference"
+        android:key="list_preference_button_size"
         android:title="Button size"
         android:defaultValue="55"
+        android:icon="@android:drawable/ic_menu_crop"
         android:entries="@array/buttonSizesKeys"
         android:entryValues="@array/buttonSizesValues"
+        />
+
+    <ListPreference
+        android:summary="%s"
+        android:key="list_preference_text_size"
+        android:title="Text size"
+        android:defaultValue="35"
+        android:icon="@android:drawable/ic_menu_zoom"
+        android:entries="@array/textSizesKeys"
+        android:entryValues="@array/textSizesValues"
         />
 
 </PreferenceScreen>
