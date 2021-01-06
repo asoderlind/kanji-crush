@@ -21,4 +21,14 @@
         android:entryValues="@array/textSizesValues"
         />
 
+    <ListPreference
+        android:summary="%s"
+        android:key="list_preference_difficulty"
+        android:title="Difficulty"
+        android:defaultValue="1"
+        android:icon="@android:drawable/ic_menu_manage"
+        android:entries="@array/difficultyKeys"
+        android:entryValues="@array/difficultyValues"
+        />
+
 </PreferenceScreen>

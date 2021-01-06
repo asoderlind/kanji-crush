@@ -5,6 +5,7 @@
         <item>Medium</item>
         <item>Large</item>
     </string-array>
+
     <string-array name="buttonSizesValues">
         <item>45</item>
         <item>55</item>
@@ -16,9 +17,22 @@
         <item>Medium</item>
         <item>Large</item>
     </string-array>
+
     <string-array name="textSizesValues">
         <item>25</item>
         <item>35</item>
         <item>45</item>
+    </string-array>
+
+    <string-array name="difficultyKeys">
+        <item>Easy</item>
+        <item>Medium</item>
+        <item>Hard</item>
+    </string-array>
+
+    <string-array name="difficultyValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </string-array>
 </resources>

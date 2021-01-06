@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Board {
     private final String msg = "Board :";
@@ -17,10 +19,10 @@ public class Board {
     private String mKanji;
     private int[] mButtonStateList;
 
-    public Board(Context c, int level){
+    public Board(Context c, int level, int difficulty, boolean reloadJukus){
         Log.d(msg, "Board constructor called");
         mContext = c;
-        mJukus = genJukus(4 + level*2);
+        mJukus = (reloadJukus) ? genJukus(4 + level*2, difficulty) : "";
         mKanji = Utils.scrambledString(mJukus);
         ROWS = mLevelDimensions[level][0];
         COLUMNS = mLevelDimensions[level][1];
@@ -57,11 +59,11 @@ public class Board {
     }
 
     /** Returns String with the 3-character-words */
-    private String genJukus(int numWords) {
-        InputStream inputStream = mContext.getResources().openRawResource(R.raw.jukugo);
+    private String genJukus(int numWords, int difficulty) {
+        InputStream inputStream = mContext.getResources().openRawResource(R.raw.sanji_list);
         CSVFile mCSVFile = new CSVFile(inputStream);
-        String[] myStringList = (String[]) mCSVFile.read().get(0); //The whole line is at index 0
-        return Utils.getRandomWords(numWords, myStringList);
+        ArrayList<String[]> myStringList = mCSVFile.read(); //The whole line is at index 0
+        return Utils.getRandomWords(numWords, difficulty, myStringList);
     }
 
     /** Switch place of single kanji at i and j in mKanji string*/
@@ -108,7 +110,7 @@ public class Board {
     }
 
     public boolean twoChipsAreSelected(){
-        Log.d(msg, "checkForSelectedChips() called");
+        //Log.d(msg, "checkForSelectedChips() called");
         int count = 0;
         for (int state : mButtonStateList) {
             if (state == 1) {
@@ -118,12 +120,12 @@ public class Board {
                 }
             }
         }
-        Log.d(msg,"no swap => select or deselect single button");
+        //Log.d(msg,"no swap => select or deselect single button");
         return false;
     }
 
     public void updateStates(){
-        Log.d(msg,"updateStates() called");
+        //Log.d(msg,"updateStates() called");
         for (int i = 0; i < mKanji.length()/3; i++){
             char char1;
             char char2;
@@ -133,7 +135,6 @@ public class Board {
             char2 = (i >= COLUMNS) ? mKanji.charAt(i + (3 * COLUMNS)) : mKanji.charAt(i + COLUMNS);
             char3 = (i >= COLUMNS) ? mKanji.charAt(i + (4 * COLUMNS)) : mKanji.charAt(i + 2 * COLUMNS);
             String candidate = String.valueOf(char1) + char2 + char3;
-            //Log.d(msg,candidate);
 
             for (int j=0; j < mJukus.length(); j += 3) {
                 String juku = mJukus.substring(j, j + 3);

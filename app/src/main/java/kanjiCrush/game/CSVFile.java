@@ -11,22 +11,20 @@ import java.util.List;
 
 public class CSVFile {
     InputStream mInputStream;
-    private static ArrayList<String[]> mResultList;
 
     /** Constructor */
     public CSVFile(InputStream inputStream){
         mInputStream = inputStream;
     }
 
-    public List read(){
-        mResultList = new ArrayList<String[]>();
+    public ArrayList<String[]> read(){
+        ArrayList<String[]> mResultList = new ArrayList<String[]>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(mInputStream));
         try {
             String csvLine;
             while ((csvLine = reader.readLine()) != null) {
-                String[] row = csvLine.split("\",\"");
+                String[] row = csvLine.split(",");
                 mResultList.add(row);
-                Log.d("VariableTag", row[0].toString());
             }
         }
         catch (IOException ex) {

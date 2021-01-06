@@ -5,21 +5,28 @@ import android.content.Context;
 
 import android.util.Log;
 import android.util.TypedValue;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 public final class Utils {
+    /* Easy=0 is 0-200, Medium=1 is 0-3000, Hard=2 is 3000+ */
+    public static final int[] levelBrackets = {200, 3000};
 
     /* TODO: check for duplicates */
     /** Returns a single string of random words from the list, number of words=numWords */
-    public static String getRandomWords(int numWords, String[] stringList){
+    public static String getRandomWords(int numWords, int difficulty, ArrayList<String[]> arrayList){
         // Get 3 random words
         StringBuilder randomWords = new StringBuilder();
         Random random = new Random();
         for (int i=0; i < numWords; i++) {
-            randomWords.append(stringList[random.nextInt(stringList.length)]);
+            int bound = (difficulty == 2) ? arrayList.size() : levelBrackets[difficulty];
+            Log.d("Utils :", "the bound is: " + bound);
+            String[] kanjiWord = arrayList.get(random.nextInt(bound));
+            randomWords.append(kanjiWord[0]);
         }
         return randomWords.toString();
     }
