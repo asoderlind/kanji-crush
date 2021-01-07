@@ -21,10 +21,12 @@ import androidx.preference.PreferenceManager;
 import java.util.ArrayList;
 
 public class GamePlayActivity extends AppCompatActivity {
+    // TODO: ANKI integration
     public static final String msg = "GamePlayActivity : ";
     private GridView mGridView;
     private Board mBoard;
 
+    private static int mJukuLength ;
     private static int mLevel;
     private static int mDifficulty;
     private static int textSizeSp;
@@ -48,19 +50,15 @@ public class GamePlayActivity extends AppCompatActivity {
         buttonSizeDp = Float.parseFloat(defSharedPref.getString("list_preference_button_size", "55"));
         textSizeSp = Integer.parseInt(defSharedPref.getString("list_preference_text_size", "35"));
         mDifficulty = Integer.parseInt(defSharedPref.getString("list_preference_difficulty", "1"));
+        mJukuLength = 3;
         Log.d(msg, "buttonSizeDp: " + buttonSizeDp + ", textSizeSp: " + textSizeSp);
 
         // Loads level from shared preferences
-        SharedPreferences sharedPref = getSharedPreferences("mySettings", MODE_PRIVATE);
+        SharedPreferences sharedPref = getSharedPreferences("boardConfig", MODE_PRIVATE);
         mLevel = sharedPref.getInt("myLevel", 0);
 
-        // Loading board with shared preferences, depending on if there are already jukus saved
-        if(sharedPref.getString("myJukus", null) != null)
-            mBoard = new Board(getApplicationContext(), mLevel, mDifficulty, false);
-        else {
-            mBoard = new Board(getApplicationContext(), mLevel, mDifficulty, true);
-        }
-        mBoard.load(sharedPref, mLevel);
+        // Instantiate new board with saved preferences, if they exists
+        mBoard = new Board(getApplicationContext(), mLevel, mDifficulty, mJukuLength, sharedPref);
         mBoard.log();
 
         // Initialize the view, buttons, and start game
@@ -83,8 +81,7 @@ public class GamePlayActivity extends AppCompatActivity {
     protected void onStop() {
         Log.d(msg, "The onStop() event");
         super.onStop();
-        SharedPreferences sharedPref = getSharedPreferences("mySettings", MODE_PRIVATE);
-        mBoard.save(sharedPref, mLevel);
+        mBoard.save(mLevel, getSharedPreferences("boardConfig", MODE_PRIVATE));
     }
 
     /** Called when the back button is pressed. */
@@ -102,7 +99,7 @@ public class GamePlayActivity extends AppCompatActivity {
         mLevel = (mLevel < 4) ? mLevel + 1 : 0;
 
         // re-instantiate the board with the new level
-        mBoard = new Board(getApplicationContext(), mLevel, mDifficulty, true);
+        mBoard = new Board(getApplicationContext(), mLevel, mDifficulty, mJukuLength);
         mBoard.log();
 
         initView();
@@ -123,7 +120,7 @@ public class GamePlayActivity extends AppCompatActivity {
         for (int i = 0; i < mBoard.getDimensions(); i++) {
 
             // Add extra row of empty invisible buttons for spacing purposes
-            if (mBoard.getRows()/3 > 1) {
+            if (mBoard.getRows()/mJukuLength > 1) {
                 if (i == mBoard.getDimensions()/2){
                     Log.d(msg,"i = " + i);
                     //Log.d(msg,"we are in the beginning of the middle row");
@@ -186,7 +183,7 @@ public class GamePlayActivity extends AppCompatActivity {
         Button nextLevelButton;
         nextLevelButton = findViewById(R.id.btnSubmit);
         nextLevelButton.setText(R.string.lower_button_text);
-        nextLevelButton.setEnabled(false);
+        nextLevelButton.setEnabled(false); // enable only for testing purposes
         nextLevelButton.setOnClickListener(v -> advanceLevel());
     }
 
@@ -230,7 +227,9 @@ public class GamePlayActivity extends AppCompatActivity {
 
                 // Calculate and set padding in order to center the buttons
                 int horizontalPadding = (displayWidth - mBoard.getColumns()*buttonSizePx - horizontalSpacingPx*(mBoard.getColumns() - 1))/2;
-                int verticalPadding = (mLevel > 0)
+
+                // Takes into consideration the empty row, present when number of rows exceeds the jukus length
+                int verticalPadding = (mBoard.getRows() > mJukuLength)
                         ? (displayHeight - (mBoard.getRows() + 1)*buttonSizePx)/2 - verticalAdjustmentPx
                         : (displayHeight - mBoard.getRows()*buttonSizePx)/2 - verticalAdjustmentPx;
                 mGridView.setPadding(horizontalPadding, verticalPadding,0,0);

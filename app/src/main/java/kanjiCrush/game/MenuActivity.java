@@ -65,8 +65,8 @@ public class MenuActivity extends AppCompatActivity {
     /** Deletes all shared preferences under 'mySettings'
      * which includes current level, board placement etc. */
     public void deleteSharedPreferences(){
-        Log.d(msg, "The deleteSharedPreferences() method");
-        SharedPreferences sharedPref = getSharedPreferences("mySettings", MODE_PRIVATE);
+        Log.d(msg, "Deleting sharedPrefs 'boardConfig'...");
+        SharedPreferences sharedPref = getSharedPreferences("boardConfig", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.clear();
         editor.commit();

@@ -6,26 +6,52 @@ import android.util.Log;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+
 
 public class Board {
     private final String msg = "Board :";
-    private int ROWS;
-    private int COLUMNS;
-    private int DIMENSIONS;
-    private static final int[][] mLevelDimensions = {{3,4},{6,3},{6,4},{6,5},{6,6}};
+    private final int ROWS;
+    private final int COLUMNS;
+    private final int DIMENSIONS;
+    private final int mJukuLength;
+    private static final int[][] mLevelDimensionsSanji = {{3,4},{6,3},{6,4},{6,5},{6,6}};
+    private static final int[][] mLevelDimensionsYoji = {{4,4},{8,3},{8,4},{8,5},{8,6}};
     private final Context mContext;
-    private String mJukus;
+    private final String mJukus;
     private String mKanji;
-    private int[] mButtonStateList;
+    private final int[] mButtonStateList;
 
-    public Board(Context c, int level, int difficulty, boolean reloadJukus){
+    /** Constructor that loads pre-existing board configs
+     * If no config found, constructs new board config */
+    public Board(Context c, int level, int difficulty, int jukuLength, SharedPreferences sharedPref){
         Log.d(msg, "Board constructor called");
         mContext = c;
-        mJukus = (reloadJukus) ? genJukus(4 + level*2, difficulty) : "";
+        mJukuLength = jukuLength;
+        mJukus = (sharedPref.getString("myJukus", null) != null) ? sharedPref.getString("myJukus", null) : genJukus(4 + level*2, difficulty);
+        mKanji = (sharedPref.getString("myKanjis", null) != null) ? sharedPref.getString("myKanjis", null) : Utils.scrambledString(mJukus);
+        ROWS = (mJukuLength == 3) ? mLevelDimensionsSanji[level][0] : mLevelDimensionsYoji[level][0];
+        COLUMNS = (mJukuLength == 3) ? mLevelDimensionsSanji[level][1] : mLevelDimensionsYoji[level][1];
+        DIMENSIONS = ROWS * COLUMNS;
+
+        String myStates = sharedPref.getString("myStates", null);
+        if (myStates != null){
+            mButtonStateList = new int[myStates.length()];
+            for(int i = 0; i < myStates.length(); i++) {
+                mButtonStateList[i] = Character.getNumericValue(myStates.charAt(i));
+            }
+        } else mButtonStateList = new int[DIMENSIONS];
+    }
+
+    /** Constructor that creates new board config */
+    public Board(Context c, int level, int difficulty, int jukuLength){
+        Log.d(msg, "Board constructor called");
+        mContext = c;
+        mJukuLength = jukuLength;
+        mJukus = genJukus(4 + level*2, difficulty);
         mKanji = Utils.scrambledString(mJukus);
-        ROWS = mLevelDimensions[level][0];
-        COLUMNS = mLevelDimensions[level][1];
+        ROWS = (mJukuLength == 3) ? mLevelDimensionsSanji[level][0] : mLevelDimensionsYoji[level][0];
+        COLUMNS = (mJukuLength == 3) ? mLevelDimensionsSanji[level][1] : mLevelDimensionsYoji[level][1];
         DIMENSIONS = ROWS * COLUMNS;
         mButtonStateList = new int[DIMENSIONS];
     }
@@ -58,9 +84,9 @@ public class Board {
         mButtonStateList[index] = value;
     }
 
-    /** Returns String with the 3-character-words */
+    /** Returns continuous String with the words from the list*/
     private String genJukus(int numWords, int difficulty) {
-        InputStream inputStream = mContext.getResources().openRawResource(R.raw.sanji_list);
+        InputStream inputStream = (mJukuLength == 3) ? mContext.getResources().openRawResource(R.raw.sanji_list) : mContext.getResources().openRawResource(R.raw.yoji_list) ;
         CSVFile mCSVFile = new CSVFile(inputStream);
         ArrayList<String[]> myStringList = mCSVFile.read(); //The whole line is at index 0
         return Utils.getRandomWords(numWords, difficulty, myStringList);
@@ -73,10 +99,14 @@ public class Board {
         mKanji = Utils.replaceCharAt(mKanji, tmp_char_i, j);
     }
 
-    public void save(SharedPreferences sharedPref, int mLevel){
-        Log.d(msg, "saving board data...");
+    /** Puts the current board config into shared preferences
+     *  'boardConfig'
+     * @param mLevel current level
+     * @param sharedPref the preference object reference
+     */
+    public void save(int mLevel, SharedPreferences sharedPref){
+        Log.d(msg, "saving board data to 'boardConfig'...");
         SharedPreferences.Editor editor = sharedPref.edit();
-
         editor.putInt("myLevel", mLevel);
         editor.putString("myJukus", mJukus);
         editor.putString("myKanjis", mKanji);
@@ -84,29 +114,6 @@ public class Board {
         for (int value : mButtonStateList) { myStates.append(value); }
         editor.putString("myStates", myStates.toString());
         editor.apply();
-    }
-
-    public void load(SharedPreferences sharedPref, int mLevel){
-        Log.d(msg, "loading board data...");
-        ROWS = mLevelDimensions[mLevel][0];
-        COLUMNS = mLevelDimensions[mLevel][1];
-        DIMENSIONS = ROWS*COLUMNS;
-
-        if(sharedPref.getString("myJukus", null) != null){
-            mJukus = sharedPref.getString("myJukus", null);
-        }
-
-        if(sharedPref.getString("myKanjis", null) != null){
-            mKanji = sharedPref.getString("myKanjis", null);
-        }
-
-        String myStates = sharedPref.getString("myStates", null);
-        if (myStates != null){
-            mButtonStateList = new int[myStates.length()];
-            for(int i = 0; i < myStates.length(); i++) {
-                mButtonStateList[i] = Character.getNumericValue(myStates.charAt(i));
-            }
-        }
     }
 
     public boolean twoChipsAreSelected(){
@@ -124,9 +131,10 @@ public class Board {
         return false;
     }
 
+    // TODO: fix for yojijukugo case
     public void updateStates(){
         //Log.d(msg,"updateStates() called");
-        for (int i = 0; i < mKanji.length()/3; i++){
+        for (int i = 0; i < mKanji.length()/ mJukuLength; i++){
             char char1;
             char char2;
             char char3;
@@ -135,10 +143,10 @@ public class Board {
             char2 = (i >= COLUMNS) ? mKanji.charAt(i + (3 * COLUMNS)) : mKanji.charAt(i + COLUMNS);
             char3 = (i >= COLUMNS) ? mKanji.charAt(i + (4 * COLUMNS)) : mKanji.charAt(i + 2 * COLUMNS);
             String candidate = String.valueOf(char1) + char2 + char3;
-
-            for (int j=0; j < mJukus.length(); j += 3) {
-                String juku = mJukus.substring(j, j + 3);
-
+            //Log.d(msg,"candidate: " + candidate);
+            for (int j=0; j < mJukus.length(); j += mJukuLength) {
+                String juku = mJukus.substring(j, j + mJukuLength);
+                //Log.d(msg,"juku: " + juku);
                 if (candidate.equals(juku)) {
                     if (i >= COLUMNS) {
                         mButtonStateList[i + (2 * COLUMNS)] = 2;
@@ -169,8 +177,17 @@ public class Board {
     public void log(){
         Log.d(msg, " ");
         Log.d(msg, "BOARD LOG ---------------");
-        Log.d(msg, "Jukus: " + mJukus);
-        Log.d(msg, "Kanji: " + mKanji);
+        Log.d(msg, "Jukus:");
+        for(int i = 0; i < mJukus.length(); i += mJukuLength){
+            Log.d(msg, mJukus.substring(i, i + mJukuLength));
+        }
+        Log.d(msg, "Kanjis:");
+        for(int i = 0; i < DIMENSIONS; i += COLUMNS){
+            Log.d(msg, mKanji.substring(i, i + COLUMNS));
+        }
+        for(int i = 0; i < DIMENSIONS; i += COLUMNS){
+            Log.d(msg, i + Arrays.toString(mButtonStateList).replaceAll("\\[|\\]|,|\\s", "").substring(i, i + COLUMNS));
+        }
         Utils.logIntList(mButtonStateList);
         Log.d(msg, "Rows: " + ROWS);
         Log.d(msg, "Columns: " + COLUMNS);
