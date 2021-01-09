@@ -50,7 +50,8 @@ public class GamePlayActivity extends AppCompatActivity {
         buttonSizeDp = Float.parseFloat(defSharedPref.getString("list_preference_button_size", "55"));
         textSizeSp = Integer.parseInt(defSharedPref.getString("list_preference_text_size", "35"));
         mDifficulty = Integer.parseInt(defSharedPref.getString("list_preference_difficulty", "1"));
-        mJukuLength = 3;
+        Bundle b = getIntent().getExtras();
+        mJukuLength = (b != null) ? b.getInt("jukuLength") : 3; // Set default to 3
         Log.d(msg, "buttonSizeDp: " + buttonSizeDp + ", textSizeSp: " + textSizeSp);
 
         // Loads level from shared preferences

@@ -26,13 +26,16 @@ public class MenuActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_left);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
-        /* Button to start the game */
+        /* Button to start the game (sanji) */
         Button startButton = findViewById(R.id.startGameButton);
         startButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Log.d(msg, "The onClick() (mainActivity) event");
                 Intent mainIntent = new Intent(MenuActivity.this, GamePlayActivity.class);
+                Bundle b = new Bundle();
+                mainIntent.putExtra("jukuLength", 3);
                 startActivity(mainIntent);
+                finish();
             }
         });
         
